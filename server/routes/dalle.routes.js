@@ -9,7 +9,7 @@ if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is missing in environment variables');
 }
 const config = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey:"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",
 });
 const openai = new OpenAIApi(config);
 
