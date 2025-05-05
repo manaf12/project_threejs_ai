@@ -30,7 +30,6 @@ router.route('/').post(async (req, res) => {
 
     // Call DALL-E 3
     const response = await openai.images.generate({
-      model: "dall-e-3",
       prompt: prompt.slice(0, 1000), // Truncate long prompts
       n: 1,
       size: "1024x1024",
@@ -46,13 +45,10 @@ router.route('/').post(async (req, res) => {
     res.status(200).json({ photo: image });
 
   } catch (error) {
-    console.error('🔥 OpenAI API Error:', {
-      status: error.response?.status,
-      error: error.response?.data?.error || error.message,
-    });
-
+    console.error("🔥 Full OpenAI Error object:", error);
+    console.error("🔥 error.response.data:", error.response?.data);
     res.status(500).json({
-      error: error.response?.data?.error?.message || "Image generation failed",
+      error: error.response?.data?.error?.message || error.message,
     });
   }
 });
