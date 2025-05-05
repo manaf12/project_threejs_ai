@@ -1,28 +1,29 @@
 import express from 'express';
-import * as dotenv from 'dotenv';
 import cors from 'cors';
-
 import dalleRoutes from './routes/dalle.routes.js';
 
-dotenv.config();
-
-
 const app = express();
+
+// Enhanced CORS for production
 const corsOptions = {
   origin: [
-    'https://project-threejs-ai-woad.vercel.app',
+    'https://project-threejs-ai-woad.vercel.app/', 
+   
   ],
-  methods: ['POST', 'GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  methods: ['POST', 'GET'],
 };
+
 app.use(cors(corsOptions));
-app.use(express.json({ limig: "50mb" }))
-app.options('*', cors(corsOptions));
-app.use("/api/v1/dalle", dalleRoutes);
+app.use(express.json({ limit: '50mb' }));
+
+// Routes
+app.use('/api/v1/dalle', dalleRoutes);
 
 app.get('/', (req, res) => {
-  res.status(200).json({ message: "Hello from DALL.E" })
-})
+  res.send('Server is running');
+});
 
-app.listen(8080, () => console.log('Server has started on port 8080'))
+const PORT =  8080;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
