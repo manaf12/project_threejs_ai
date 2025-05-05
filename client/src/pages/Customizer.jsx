@@ -57,7 +57,6 @@ const Customizer = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': 'https://project-threejs-ai-woad.vercel.app'
         },
         body: JSON.stringify({
           prompt,
