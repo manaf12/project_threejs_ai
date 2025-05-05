@@ -8,7 +8,7 @@ const router = express.Router();
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is missing in environment variables');
 }
-console.log(process.env.OPENAI_API_KEY)
+
 const config = new Configuration({
   apiKey:process.env.OPENAI_API_KEY,
 });
