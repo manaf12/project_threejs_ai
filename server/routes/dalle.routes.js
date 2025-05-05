@@ -5,7 +5,9 @@ import { Configuration, OpenAIApi} from 'openai';
 dotenv.config();
 
 const router = express.Router();
-
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('OPENAI_API_KEY is missing in environment variables');
+}
 const config = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
