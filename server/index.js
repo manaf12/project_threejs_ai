@@ -7,7 +7,7 @@ const app = express();
 // Enhanced CORS for production
 const corsOptions = {
   origin: [
-    'https://project-threejs-ai-woad.vercel.app/', 
+    'https://project-threejs-ai-woad.vercel.app', 
    
   ],
   methods: ['POST', 'GET'],
