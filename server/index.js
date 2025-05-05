@@ -6,10 +6,19 @@ import dalleRoutes from './routes/dalle.routes.js';
 
 dotenv.config();
 
-const app = express();
-app.use(cors());
-app.use(express.json({ limig: "50mb" }))
 
+const app = express();
+const corsOptions = {
+  origin: [
+    'https://project-threejs-ai-woad.vercel.app',
+  ],
+  methods: ['POST', 'GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+app.use(cors(corsOptions));
+app.use(express.json({ limig: "50mb" }))
+app.options('*', cors(corsOptions));
 app.use("/api/v1/dalle", dalleRoutes);
 
 app.get('/', (req, res) => {

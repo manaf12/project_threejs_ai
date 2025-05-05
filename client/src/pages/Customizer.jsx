@@ -56,7 +56,8 @@ const Customizer = () => {
       const response = await fetch('https://projectthreejsai-production.up.railway.app/api/v1/dalle', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Origin': 'https://project-threejs-ai-woad.vercel.app'
         },
         body: JSON.stringify({
           prompt,
