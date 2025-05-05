@@ -21,6 +21,7 @@ router.route('/').get((req, res) => {
 
 router.route('/').post(async (req, res) => {
   try {
+    console.log('📥  Incoming req.body:', req.body);
     const { prompt } = req.body;
 
     // Validate prompt
