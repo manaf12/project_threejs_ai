@@ -21,8 +21,8 @@ router.route('/').get((req, res) => {
 
 router.route('/').post(async (req, res) => {
   try {
-    console.log('📥  Incoming req.body:', req.body);
     const { prompt } = req.body;
+    console.log('📥  Incoming req.body:', req.body);
 
     // Validate prompt
     if (!prompt || typeof prompt !== 'string') {
@@ -31,6 +31,7 @@ router.route('/').post(async (req, res) => {
 
     // Call DALL-E 3
     const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt: prompt.slice(0, 1000), // Truncate long prompts
       n: 1,
       size: "1024x1024",
