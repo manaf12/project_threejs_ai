@@ -1,57 +1,64 @@
+// server/routes/dalle.routes.js
 import express from 'express';
-import OpenAI from 'openai'; // Using v4+ SDK
-import dotenv from 'dotenv';
-
-dotenv.config();
+import OpenAI from 'openai';
 
 const router = express.Router();
 
+// Constants
+const MAX_PROMPT_LENGTH = 1000;
+const IMAGE_COUNT       = 1;
+const IMAGE_SIZE        = '1024x1024';
+const MODEL             = 'dall-e-3';
+
 // Validate API key on startup
 if (!process.env.OPENAI_API_KEY) {
-  throw new Error('❌ OPENAI_API_KEY missing in environment variables');
+  console.error('🔴 Missing OPENAI_API_KEY!');
+  process.exit(1);
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// Helper for sending errors
+function sendError(res, status, message) {
+  return res.status(status).json({ error: message });
+}
+
+// Health check
+router.get('/', (_req, res) => {
+  res.status(200).json({ message: 'Hello from DALL·E routes!' });
 });
 
-router.route('/').get((req, res) => {
-  res.status(200).json({ message: "Hello from DALL.E ROUTES" });
-});
+// Generate image
+router.post('/', async (req, res) => {
+  const { prompt } = req.body;
+  console.log('📥  Prompt received:', prompt);
 
-router.route('/').post(async (req, res) => {
+  if (!prompt || typeof prompt !== 'string') {
+    return sendError(res, 400, 'Prompt must be a non-empty string.');
+  }
+
   try {
-    const { prompt } = req.body;
-    console.log('📥  Incoming req.body:', req.body);
-
-    // Validate prompt
-    if (!prompt || typeof prompt !== 'string') {
-      return res.status(400).json({ error: "Invalid or missing prompt" });
-    }
-
-    // Call DALL-E 3
     const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: prompt.slice(0, 1000), // Truncate long prompts
-      n: 1,
-      size: "1024x1024",
-      response_format: "b64_json",
+      model: MODEL,
+      prompt: prompt.slice(0, MAX_PROMPT_LENGTH),
+      n: IMAGE_COUNT,
+      size: IMAGE_SIZE,
+      response_format: 'b64_json',
     });
 
-    const image = response.data[0].b64_json;
-
-    if (!image) {
-      throw new Error("No image data received from OpenAI");
+    console.log('🧠 OpenAI response OK');
+    const imageData = response.data?.[0]?.b64_json;
+    if (!imageData) {
+      throw new Error('No image data returned by OpenAI.');
     }
 
-    res.status(200).json({ photo: image });
+    res.status(200).json({ photo: imageData });
 
-  } catch (error) {
-    console.error("🔥 Full OpenAI Error object:", error);
-    console.error("🔥 error.response.data:", error.response?.data);
-    res.status(500).json({
-      error: error.response?.data?.error?.message || error.message,
-    });
+  } catch (err) {
+    console.error('🔥 OpenAI Error:', err);
+    // Prefer the OpenAI message if available
+    const msg = err.response?.data?.error?.message || err.message || 'Image generation failed.';
+    return sendError(res, err.status || 500, msg);
   }
 });
 
