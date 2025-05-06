@@ -1,6 +1,6 @@
 // server/routes/dalle.routes.js
 import express from 'express';
-import OpenAI from 'openai';
+import { Configuration, OpenAIApi } from 'openai';
 
 const router = express.Router();
 
@@ -10,18 +10,16 @@ const IMAGE_COUNT       = 1;
 const IMAGE_SIZE        = '1024x1024';
 const MODEL             = 'dall-e-3';
 
-// Validate API key on startup
+// Initialize OpenAI REST client
 if (!process.env.OPENAI_API_KEY) {
   console.error('🔴 Missing OPENAI_API_KEY!');
   process.exit(1);
 }
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Helper for sending errors
-function sendError(res, status, message) {
-  return res.status(status).json({ error: message });
-}
+const config = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const client = new OpenAIApi(config);
 
 // Health check
 router.get('/', (_req, res) => {
@@ -34,11 +32,11 @@ router.post('/', async (req, res) => {
   console.log('📥  Prompt received:', prompt);
 
   if (!prompt || typeof prompt !== 'string') {
-    return sendError(res, 400, 'Prompt must be a non-empty string.');
+    return res.status(400).json({ error: 'Prompt must be a non-empty string.' });
   }
 
   try {
-    const response = await openai.images.generate({
+    const imageResponse = await client.createImage({
       model: MODEL,
       prompt: prompt.slice(0, MAX_PROMPT_LENGTH),
       n: IMAGE_COUNT,
@@ -46,19 +44,23 @@ router.post('/', async (req, res) => {
       response_format: 'b64_json',
     });
 
-    console.log('🧠 OpenAI response OK');
-    const imageData = response.data?.[0]?.b64_json;
+    console.log('🧠 OpenAI createImage response data keys:', Object.keys(imageResponse.data));
+
+    const imageData = imageResponse.data.data?.[0]?.b64_json;
     if (!imageData) {
       throw new Error('No image data returned by OpenAI.');
     }
 
-    res.status(200).json({ photo: imageData });
+    return res.status(200).json({ photo: imageData });
 
   } catch (err) {
     console.error('🔥 OpenAI Error:', err);
-    // Prefer the OpenAI message if available
-    const msg = err.response?.data?.error?.message || err.message || 'Image generation failed.';
-    return sendError(res, err.status || 500, msg);
+    // If OpenAI gave a structured error, use that; otherwise fall back
+    const msg =
+      err.response?.data?.error?.message ||
+      err.message ||
+      'Image generation failed.';
+    return res.status(err.response?.status || 500).json({ error: msg });
   }
 });
 
